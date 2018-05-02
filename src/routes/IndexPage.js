@@ -1,13 +1,9 @@
 import React, { PureComponent } from 'react';
-// import propTypes from 'prop-types';
-import { Form, Input, Checkbox, Card, Spin, Upload, Button, Icon, message, notification } from 'antd';
+import { Card, Spin, Button, notification } from 'antd';
 import { connect } from 'dva';
-import { Link } from 'dva/router';
+import utils from '../utils/utils';
 import './IndexPage.scss';
 import * as qiniu from 'qiniu-js'
-
-const FormItem = Form.Item;
-const maxWidth = 378.6;
 
 class IndexPage extends PureComponent {
 
@@ -16,73 +12,58 @@ class IndexPage extends PureComponent {
     this.state = {
       uploadImg: '',
       uploadImgUrl: '',
+      curImgHeight: 200,
     };
-
+    this.defaultImgWidth = 200;
+    this.defaultIntervalTime = 1000 * 60 * 60 * 12;
     this.ak = '1Aooo13zVYGwzfZnvEn9d_exPKTb0gjIJKVr_kHQ';
     this.SK = 'Ma6k_xiYDdiBXY-9qMMWR5D6QZmarwDIakWfmDuk';
-    this.token = "1Aooo13zVYGwzfZnvEn9d_exPKTb0gjIJKVr_kHQ:T__B71ZSc_k5uQf46QKa04lRo44=:eyJzY29wZSI6InFpbml1LXBpY3R1cmUtc3BhY2UiLCJkZWFkbGluZSI6MTUyNTIwODEyNX0=";
-    this.bucket = 'qiniu-picture-space';
-    this.region = 'up-z0.qiniup.com';
+    // this.token = "1Aooo13zVYGwzfZnvEn9d_exPKTb0gjIJKVr_kHQ:T__B71ZSc_k5uQf46QKa04lRo44=:eyJzY29wZSI6InFpbml1LXBpY3R1cmUtc3BhY2UiLCJkZWFkbGluZSI6MTUyNTIwODEyNX0=";
+    // this.bucket = 'qiniu-picture-space'; //私有
+    this.bucket = 'qiniu-space-caozihao';  //公开
+    this.privateHost = 'http://p7zobqagh.bkt.clouddn.com';
+    this.publicHost = 'http://p83ybv56r.bkt.clouddn.com';
   }
-
 
   componentDidMount() { }
 
   componentWillReceiveProps(nextProps) { }
 
+  // 上传图片
   qiniuJSUpload = () => {
     const { uploadImg } = this.state;
-    console.log('uploadImg ->', uploadImg);
-    var observable = qiniu.upload(uploadImg, uploadImg.name, this.token);
-    console.log('observable ->', observable);
+    let token = utils.genUpToken(this.ak, this.SK, this.bucket, this.defaultIntervalTime);
+    var observable = qiniu.upload(uploadImg, uploadImg.name, token);
     observable.subscribe(observable); // 上传开始
   }
 
-
-  /*   qiniuNodeJsUpload = () => {
-      //需要填写你的 Access Key 和 Secret Key
-      const { uploadImg } = this.state;
-      console.log('uploadImg ->',uploadImg);
-      qiniu.conf.ACCESS_KEY = this.ak;
-      qiniu.conf.SECRET_KEY = this.SK;
-      //要上传的空间
-      const bucket = this.bucket;
-      //上传到七牛后保存的文件名
-      const key = uploadImg.name;
-      //构建上传策略函数
-
-      function uptoken(bucket, key) {
-        var putPolicy = new qiniu.rs.PutPolicy(bucket + ":" + key);
-        return putPolicy.token();
-      }
-
-      //生成上传 Token
-      const token = uptoken(bucket, key);
-      //要上传文件的本地路径
-      filePath = './ruby-logo.png'
-      //构造上传函数
-      function uploadFile(uptoken, key, localFile) {
-        var extra = new qiniu.io.PutExtra();
-        qiniu.io.putFile(uptoken, key, localFile, extra, function (err, ret) {
-          if (!err) {
-            // 上传成功， 处理返回值
-            console.log(ret.hash, ret.key, ret.persistentId);
-          } else {
-            // 上传失败， 处理返回代码
-            console.log(err);
-          }
-        });
-      }
-      //调用uploadFile上传
-      uploadFile(token, key, filePath);
+  getImgUrl = () => {
+    const publicObj = {
+      host: this.publicHost,
+      key: '20141113180912_HFBKz.thumb.700_0 - 副本 (2).jpg',
     }
-   */
+
+    const privateObj = {
+      host: this.publicHost,
+      key: '20141113180912_HFBKz.thumb.700_0 - 副本 (2).jpg',
+      e: Math.round((new Date().getTime + 1000 * 60 * 60 * 8) / 1000),
+      secretKey: this.SK,
+    }
+
+
+    const privateUrl = utils.getPrivateUrl(privateObj);
+    const publicUrl = utils.getPublicUrl(publicObj);
+
+    return {
+      privateUrl,
+      publicUrl,
+    };
+  }
 
   // 图片上传前
   beforeUpload = (file) => {
-
     const _this = this;
-
+    const _defaultImgWidth = this.defaultImgWidth;
     return new Promise((resolve) => {
       const fr = new FileReader();
       fr.readAsDataURL(file);
@@ -90,9 +71,11 @@ class IndexPage extends PureComponent {
         const img = new Image();
         img.src = fr.result;
         img.onload = function () {
+          const curImgHeight = img.height * _defaultImgWidth / img.width;
           _this.setState({
             uploadImg: file,
-            uploadImgUrl: img.src
+            uploadImgUrl: img.src,
+            curImgHeight,
           })
         }
       };
@@ -128,11 +111,10 @@ class IndexPage extends PureComponent {
     }
   }
 
-
   render() {
     const { spiningStatus } = this.props;
-    const { uploadImgUrl } = this.state;
-
+    const { uploadImgUrl, curImgHeight } = this.state;
+    const { publicUrl, privateUrl } = this.getImgUrl();
     return (
 
       <div className="upload-page">
@@ -142,10 +124,20 @@ class IndexPage extends PureComponent {
               className="card"
               title="七牛云上传"
               hoverable={true}>
-              {uploadImgUrl ? <img className="upload-bk-img" alt="upload-bk-img" src={uploadImgUrl} /> : <div className="default-img"></div>}
+              <div className="default-img" style={{ height: curImgHeight }}>
+                {uploadImgUrl ? <img className="upload-bk-img" alt="upload-bk-img" src={uploadImgUrl} /> : ''}
+              </div>
               <input type="file" name="image" accept='image/*' onChange={this.handleInputChange} />
               <Button type="primary" onClick={this.qiniuJSUpload}>上传</Button>
+            </Card>
 
+            <Card
+              className="card"
+              title="公开空间-图片"
+              hoverable={true}>
+              <div className="default-img" style={{ height: curImgHeight }}>
+                <img className="upload-bk-img" alt="upload-bk-img" src={publicUrl} />
+              </div>
             </Card>
           </Spin>
         </div>
