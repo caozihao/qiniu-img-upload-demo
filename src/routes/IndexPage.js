@@ -18,8 +18,6 @@ class IndexPage extends PureComponent {
     this.defaultIntervalTime = 1000 * 60 * 60 * 12;
     this.ak = '1Aooo13zVYGwzfZnvEn9d_exPKTb0gjIJKVr_kHQ';
     this.SK = 'Ma6k_xiYDdiBXY-9qMMWR5D6QZmarwDIakWfmDuk';
-    // this.token = "1Aooo13zVYGwzfZnvEn9d_exPKTb0gjIJKVr_kHQ:T__B71ZSc_k5uQf46QKa04lRo44=:eyJzY29wZSI6InFpbml1LXBpY3R1cmUtc3BhY2UiLCJkZWFkbGluZSI6MTUyNTIwODEyNX0=";
-    // this.bucket = 'qiniu-picture-space'; //私有
     this.bucket = 'qiniu-space-caozihao';  //公开
     this.privateHost = 'http://p7zobqagh.bkt.clouddn.com';
     this.publicHost = 'http://p83ybv56r.bkt.clouddn.com';
@@ -46,10 +44,9 @@ class IndexPage extends PureComponent {
     const privateObj = {
       host: this.publicHost,
       key: '20141113180912_HFBKz.thumb.700_0 - 副本 (2).jpg',
-      e: Math.round((new Date().getTime + 1000 * 60 * 60 * 8) / 1000),
+      dealLine: Math.round((new Date().getTime() + 1000 * 60 * 60 * 8) / 1000),
       secretKey: this.SK,
     }
-
 
     const privateUrl = utils.getPrivateUrl(privateObj);
     const publicUrl = utils.getPublicUrl(publicObj);
@@ -130,13 +127,22 @@ class IndexPage extends PureComponent {
               <input type="file" name="image" accept='image/*' onChange={this.handleInputChange} />
               <Button type="primary" onClick={this.qiniuJSUpload}>上传</Button>
             </Card>
-
+            <p />
             <Card
               className="card"
               title="公开空间-图片"
               hoverable={true}>
               <div className="default-img" style={{ height: curImgHeight }}>
                 <img className="upload-bk-img" alt="upload-bk-img" src={publicUrl} />
+              </div>
+            </Card>
+            <p />
+            <Card
+              className="card"
+              title="私有空间-图片"
+              hoverable={true}>
+              <div className="default-img" style={{ height: curImgHeight }}>
+                <img className="upload-bk-img" alt="upload-bk-img" src={privateUrl} />
               </div>
             </Card>
           </Spin>

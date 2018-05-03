@@ -169,8 +169,19 @@ const genUpToken = (accessKey, secretKey, bucketName, intervalTime) => {
   return upload_token;
 };
 
-const getPrivateUrl = () => {
-  return '';
+const getPrivateUrl = (obj) => {
+  const { host, key, dealLine, secretKey } = obj;
+
+  let fileName = encodeURI(key);
+  let downloadUrl = `${host}/${fileName}?e=${dealLine}`;
+  let sign = hmacSHA1(downloadUrl, secretKey);
+
+  console.log('Base64 ->', Base64);
+
+  let encodedSign = Base64.stringify(sign);
+  let token = `${secretKey}:${encodedSign}`;
+  let finalUrl = `${downloadUrl}&token=${token}`
+  return finalUrl;
 }
 
 const getPublicUrl = (obj) => {
