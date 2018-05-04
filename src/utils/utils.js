@@ -5,6 +5,10 @@ import hmacSHA512 from 'crypto-js/hmac-sha512';
 import hmacSHA1 from 'crypto-js/hmac-sha1';
 import Base64 from 'crypto-js/enc-base64';
 
+import URLSafeBase64 from 'urlsafe-base64';
+
+console.log('URLSafeBase64 ->', URLSafeBase64);
+
 var base64EncodeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 var base64DecodeChars = new Array(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
   52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
@@ -136,11 +140,6 @@ const base64decode = (str) => {
   }
   return out;
 }
-const safe64 = (base64) => {
-  base64 = base64.replace(/\+/g, "-");
-  base64 = base64.replace(/\//g, "_");
-  return base64;
-};
 
 // 生成token
 const genUpToken = (accessKey, secretKey, bucketName, intervalTime) => {
@@ -169,18 +168,32 @@ const genUpToken = (accessKey, secretKey, bucketName, intervalTime) => {
   return upload_token;
 };
 
+const safe64 = (base64) => {
+  base64 = base64.replace(/\+/g, "-");
+  base64 = base64.replace(/\//g, "_");
+  return base64;
+};
+
+const urlsafe_base64_encode = (data) => {
+  data = base64encode(data);
+  data = safe64(data);
+  return data;
+}
+
+
 const getPrivateUrl = (obj) => {
   const { host, key, dealLine, secretKey } = obj;
 
-  let fileName = encodeURI(key);
-  let downloadUrl = `${host}/${fileName}?e=${dealLine}`;
+  console.log('obj ->', obj);
+  let fileName = safe64(encodeURI(key));
+  let downloadUrl = `${host}/${fileName}?attname=&e=${dealLine}`;
   let sign = hmacSHA1(downloadUrl, secretKey);
 
-  console.log('Base64 ->', Base64);
+  let encodedSign = urlsafe_base64_encode(sign);
 
-  let encodedSign = Base64.stringify(sign);
   let token = `${secretKey}:${encodedSign}`;
   let finalUrl = `${downloadUrl}&token=${token}`
+  console.log('finalUrl ->', finalUrl);
   return finalUrl;
 }
 

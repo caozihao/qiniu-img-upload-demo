@@ -18,6 +18,8 @@ class IndexPage extends PureComponent {
     this.defaultIntervalTime = 1000 * 60 * 60 * 12;
     this.ak = '1Aooo13zVYGwzfZnvEn9d_exPKTb0gjIJKVr_kHQ';
     this.SK = 'Ma6k_xiYDdiBXY-9qMMWR5D6QZmarwDIakWfmDuk';
+    this.publicBucket = 'qiniu-space-caozihao';  //公开
+    this.privateBucket = 'qiniu-picture-space';
     this.bucket = 'qiniu-space-caozihao';  //公开
     this.privateHost = 'http://p7zobqagh.bkt.clouddn.com';
     this.publicHost = 'http://p83ybv56r.bkt.clouddn.com';
@@ -30,7 +32,7 @@ class IndexPage extends PureComponent {
   // 上传图片
   qiniuJSUpload = () => {
     const { uploadImg } = this.state;
-    let token = utils.genUpToken(this.ak, this.SK, this.bucket, this.defaultIntervalTime);
+    let token = utils.genUpToken(this.ak, this.SK, this.privateBucket, this.defaultIntervalTime);
     var observable = qiniu.upload(uploadImg, uploadImg.name, token);
     observable.subscribe(observable); // 上传开始
   }
@@ -42,10 +44,10 @@ class IndexPage extends PureComponent {
     }
 
     const privateObj = {
-      host: this.publicHost,
-      key: '20141113180912_HFBKz.thumb.700_0 - 副本 (2).jpg',
+      host: this.privateHost,
+      key: 'n_20186636564228.jpg',
       dealLine: Math.round((new Date().getTime() + 1000 * 60 * 60 * 8) / 1000),
-      secretKey: this.SK,
+      secretKey: `${this.ak}`,
     }
 
     const privateUrl = utils.getPrivateUrl(privateObj);
